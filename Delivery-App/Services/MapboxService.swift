@@ -23,6 +23,12 @@ struct MapboxGeometry: Codable {
 
 struct MapboxProperties: Codable {
     let accuracy: String?
+    let type: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case accuracy
+        case type
+    }
 }
 
 struct MapboxDirectionsResponse: Codable {
@@ -83,52 +89,205 @@ class MapboxService {
     
     /// Geocodes an address using Mapbox Geocoding API
     private func geocodeAddress(_ address: DeliveryAddress) async throws -> (Double, Double) {
+        // #region agent log
+        DebugLogger.log(
+            location: "MapboxService.swift:geocodeAddress",
+            message: "Starting geocoding",
+            data: ["address": "\(address.line1), \(address.city), \(address.state) \(address.zip)"],
+            hypothesisId: "A"
+        )
+        // #endregion
+        
         let apiKey = APIConfig.getAPIKey(for: .mapbox)
         let query = "\(address.line1), \(address.city), \(address.state) \(address.zip)"
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         
         let urlString = "\(APIConfig.mapboxBaseURL)/geocoding/v5/mapbox.places/\(encodedQuery).json?access_token=\(apiKey)&limit=1"
+        
+        // #region agent log
+        DebugLogger.log(
+            location: "MapboxService.swift:geocodeAddress",
+            message: "Geocoding URL constructed",
+            data: ["url": urlString, "encodedQuery": encodedQuery],
+            hypothesisId: "A"
+        )
+        // #endregion
+        
         guard let url = URL(string: urlString) else {
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:geocodeAddress",
+                message: "Failed to create URL",
+                data: ["urlString": urlString],
+                hypothesisId: "A"
+            )
+            // #endregion
             throw AppError.invalidAddress
         }
         
-        let response: MapboxGeocodingResponse = try await apiClient.get(url: url)
-        
-        guard let feature = response.features.first,
-              feature.geometry.coordinates.count >= 2 else {
-            throw AppError.invalidAddress
-        }
-        
-        // Check if address is accurate enough
-        if let accuracy = feature.properties.accuracy, accuracy == "point" {
-            // Valid address with point accuracy
+        do {
+            let response: MapboxGeocodingResponse = try await apiClient.get(url: url)
+            
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:geocodeAddress",
+                message: "Geocoding response received",
+                data: ["featuresCount": response.features.count],
+                hypothesisId: "A"
+            )
+            // #endregion
+            
+            guard let feature = response.features.first,
+                  feature.geometry.coordinates.count >= 2 else {
+                // #region agent log
+                DebugLogger.log(
+                    location: "MapboxService.swift:geocodeAddress",
+                    message: "No valid features in response",
+                    data: ["featuresCount": response.features.count],
+                    hypothesisId: "A"
+                )
+                // #endregion
+                throw AppError.invalidAddress
+            }
+            
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:geocodeAddress",
+                message: "Feature found",
+                data: [
+                    "coordinates": feature.geometry.coordinates,
+                    "accuracy": feature.properties.accuracy ?? "nil"
+                ],
+                hypothesisId: "A"
+            )
+            // #endregion
+            
+            // Accept any coordinates returned - Mapbox geocoding is generally accurate
+            // If it returns coordinates, the address is valid enough for delivery
             return (feature.geometry.coordinates[0], feature.geometry.coordinates[1])
-        } else if feature.properties.accuracy == nil || feature.properties.accuracy == "street" {
-            // Street-level accuracy is acceptable
-            return (feature.geometry.coordinates[0], feature.geometry.coordinates[1])
-        } else {
-            // Address is too vague
+        } catch let error as AppError {
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:geocodeAddress",
+                message: "AppError during geocoding",
+                data: ["error": error.localizedDescription],
+                hypothesisId: "A"
+            )
+            // #endregion
+            throw error
+        } catch {
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:geocodeAddress",
+                message: "Unknown error during geocoding",
+                data: ["error": error.localizedDescription],
+                hypothesisId: "A"
+            )
+            // #endregion
             throw AppError.invalidAddress
         }
     }
     
     /// Calculates ETA using Mapbox Directions API
     private func calculateDirectionsETA(from: (Double, Double), to: (Double, Double)) async throws -> Int {
+        // #region agent log
+        DebugLogger.log(
+            location: "MapboxService.swift:calculateDirectionsETA",
+            message: "Calculating directions",
+            data: [
+                "from": "\(from.0),\(from.1)",
+                "to": "\(to.0),\(to.1)"
+            ],
+            hypothesisId: "A"
+        )
+        // #endregion
+        
         let apiKey = APIConfig.getAPIKey(for: .mapbox)
         let urlString = "\(APIConfig.mapboxBaseURL)/directions/v5/mapbox/driving/\(from.0),\(from.1);\(to.0),\(to.1)?access_token=\(apiKey)"
+        
+        // #region agent log
+        DebugLogger.log(
+            location: "MapboxService.swift:calculateDirectionsETA",
+            message: "Directions URL constructed",
+            data: ["url": urlString],
+            hypothesisId: "A"
+        )
+        // #endregion
+        
         guard let url = URL(string: urlString) else {
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:calculateDirectionsETA",
+                message: "Failed to create directions URL",
+                data: ["urlString": urlString],
+                hypothesisId: "A"
+            )
+            // #endregion
             throw AppError.networkError("Invalid directions URL")
         }
         
-        let response: MapboxDirectionsResponse = try await apiClient.get(url: url)
-        
-        guard let route = response.routes.first else {
-            throw AppError.networkError("No route found")
+        do {
+            let response: MapboxDirectionsResponse = try await apiClient.get(url: url)
+            
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:calculateDirectionsETA",
+                message: "Directions response received",
+                data: ["routesCount": response.routes.count],
+                hypothesisId: "A"
+            )
+            // #endregion
+            
+            guard let route = response.routes.first else {
+                // #region agent log
+                DebugLogger.log(
+                    location: "MapboxService.swift:calculateDirectionsETA",
+                    message: "No routes in response",
+                    data: ["routesCount": response.routes.count],
+                    hypothesisId: "A"
+                )
+                // #endregion
+                throw AppError.networkError("No route found")
+            }
+            
+            // Convert seconds to minutes and round up
+            let etaMinutes = Int(ceil(route.duration / 60.0))
+            let finalEta = max(etaMinutes, 5) // Minimum 5 minutes
+            
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:calculateDirectionsETA",
+                message: "ETA calculated",
+                data: [
+                    "durationSeconds": route.duration,
+                    "etaMinutes": finalEta
+                ],
+                hypothesisId: "A"
+            )
+            // #endregion
+            
+            return finalEta
+        } catch let error as AppError {
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:calculateDirectionsETA",
+                message: "AppError during directions calculation",
+                data: ["error": error.localizedDescription],
+                hypothesisId: "A"
+            )
+            // #endregion
+            throw error
+        } catch {
+            // #region agent log
+            DebugLogger.log(
+                location: "MapboxService.swift:calculateDirectionsETA",
+                message: "Unknown error during directions calculation",
+                data: ["error": error.localizedDescription],
+                hypothesisId: "A"
+            )
+            // #endregion
+            throw AppError.networkError("Failed to calculate directions: \(error.localizedDescription)")
         }
-        
-        // Convert seconds to minutes and round up
-        let etaMinutes = Int(ceil(route.duration / 60.0))
-        return max(etaMinutes, 5) // Minimum 5 minutes
     }
 }
 

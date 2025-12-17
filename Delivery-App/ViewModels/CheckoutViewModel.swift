@@ -14,7 +14,7 @@ import Combine
 class CheckoutViewModel: ObservableObject {
     @Published var addressLine1: String = ""
     @Published var city: String = ""
-    @Published var state: String = ""
+    @Published var state: String = "VA"
     @Published var zip: String = ""
     @Published var isPlacingOrder = false
     @Published var error: AppError?

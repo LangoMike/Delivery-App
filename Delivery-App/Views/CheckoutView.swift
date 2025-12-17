@@ -94,11 +94,20 @@ struct CheckoutView: View {
                             Text("State")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
-                            TextField("ST", text: $viewModel.state)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                                .accessibilityIdentifier("stateField")
+                            Picker("State", selection: $viewModel.state) {
+                                ForEach(USStates.states, id: \.abbreviation) { state in
+                                    Text(state.abbreviation).tag(state.abbreviation)
+                                }
+                            }
+                            .pickerStyle(MenuPickerStyle())
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                            .accessibilityIdentifier("stateField")
                         }
-                        .frame(width: 80)
+                        .frame(width: 120)
                     }
                     
                     VStack(alignment: .leading, spacing: 8) {
