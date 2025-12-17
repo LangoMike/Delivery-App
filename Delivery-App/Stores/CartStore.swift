@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 /// Single source of truth for cart state - manages cart items and provides computed totals
 @MainActor

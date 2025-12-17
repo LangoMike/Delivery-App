@@ -34,7 +34,7 @@ class MenuViewModel: ObservableObject {
         } catch let appError as AppError {
             error = appError
         } catch {
-            error = AppError.unknown
+            self.error = AppError.unknown
         }
         
         isLoading = false

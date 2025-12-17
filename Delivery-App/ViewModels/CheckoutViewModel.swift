@@ -82,7 +82,7 @@ class CheckoutViewModel: ObservableObject {
             throw appError
         } catch {
             let unknownError = AppError.unknown
-            error = unknownError
+            self.error = unknownError
             throw unknownError
         }
     }

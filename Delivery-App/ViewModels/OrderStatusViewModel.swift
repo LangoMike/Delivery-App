@@ -37,7 +37,7 @@ class OrderStatusViewModel: ObservableObject {
             error = appError
             return nil
         } catch {
-            error = AppError.unknown
+            self.error = AppError.unknown
             return nil
         }
     }
