@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 /// ViewModel for the Restaurants screen - manages restaurant list state
 @MainActor
@@ -31,7 +32,7 @@ class RestaurantsViewModel: ObservableObject {
         } catch let appError as AppError {
             error = appError
         } catch {
-            error = .unknown
+            self.error = .unknown
         }
         
         isLoading = false
