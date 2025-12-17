@@ -8,7 +8,7 @@
 import Foundation
 
 /// Centralized error types for the app
-enum AppError: LocalizedError {
+enum AppError: LocalizedError, Equatable {
     case networkError(String)
     case decodingError(String)
     case invalidResponse
@@ -35,5 +35,22 @@ enum AppError: LocalizedError {
             return "An unknown error occurred"
         }
     }
+    
+    static func == (lhs: AppError, rhs: AppError) -> Bool {
+        switch (lhs, rhs) {
+        case (.invalidResponse, .invalidResponse),
+             (.invalidAddress, .invalidAddress),
+             (.emptyCart, .emptyCart),
+             (.unknown, .unknown):
+            return true
+        case let (.networkError(a), .networkError(b)):
+            return a == b
+        case let (.decodingError(a), .decodingError(b)):
+            return a == b
+        case let (.apiError(a), .apiError(b)):
+            return a == b
+        default:
+            return false
+        }
+    }
 }
-
