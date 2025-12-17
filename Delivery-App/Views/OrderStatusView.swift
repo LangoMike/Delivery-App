@@ -122,7 +122,7 @@ struct OrderStatusView: View {
         .onAppear {
             order = orderStore.currentOrder
         }
-        .onChange(of: orderStore.currentOrder?.id, ) { _ in
+        .onChange(of: orderStore.currentOrder?.id) { oldValue, newValue in
             order = orderStore.currentOrder
         }
     }

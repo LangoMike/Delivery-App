@@ -164,7 +164,7 @@ struct CheckoutView: View {
     /// Places the order and navigates to status screen
     private func placeOrder() async {
         guard let restaurantId = cartStore.restaurantId,
-              let firstItem = cartStore.items.first else {
+              !cartStore.items.isEmpty else {
             viewModel.error = .emptyCart
             showingError = true
             return
