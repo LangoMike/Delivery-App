@@ -33,6 +33,13 @@ final class Delivery_AppUITests: XCTestCase {
         XCTAssertTrue(restaurantCell.waitForExistence(timeout: 5), "Restaurant cell should exist")
         restaurantCell.tap()
         
+        let app = XCUIApplication()
+        app.activate()
+        app/*@START_MENU_TOKEN@*/.buttons["Pizza Palace, Italian, 4.5"]/*[[".buttons",".containing(.staticText, identifier: \"Italian\")",".matching(identifier: \"restaurantCell-restaurantCell-restaurantCell-restaurantCell-restaurantCell\").containing(.staticText, identifier: \"Pizza Palace\")",".containing(.staticText, identifier: \"Pizza Palace\")",".otherElements.buttons[\"Pizza Palace, Italian, 4.5\"]",".buttons[\"Pizza Palace, Italian, 4.5\"]"],[[[-1,5],[-1,4],[-1,0,1]],[[-1,3],[-1,2],[-1,1]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
+        app.buttons.matching(identifier: "addToCartButton").element(boundBy: 0).tap()
+        app/*@START_MENU_TOKEN@*/.images["cart"]/*[[".buttons",".images",".images[\"Shopping Cart\"]",".images[\"cart\"]"],[[[-1,3],[-1,2],[-1,0,1]],[[-1,3],[-1,2],[-1,1]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
+        app/*@START_MENU_TOKEN@*/.buttons["checkoutButton"]/*[[".otherElements",".buttons[\"Checkout\"]",".buttons[\"checkoutButton\"]"],[[[-1,2],[-1,1],[-1,0,1]],[[-1,2],[-1,1]]],[0]]@END_MENU_TOKEN@*/.firstMatch.tap()
+        app/*@START_MENU_TOKEN@*/.buttons["BackButton"]/*[[".navigationBars",".buttons",".buttons[\"Pizza Palace\"]",".buttons[\"BackButton\"]"],[[[-1,3],[-1,2],[-1,0,1]],[[-1,3],[-1,2],[-1,1]]],[0]]@END_MENU_TOKEN@*/.firstMatch.doubleTap()
         // Wait for menu to load
         let menuScreen = app.navigationBars.firstMatch
         XCTAssertTrue(menuScreen.waitForExistence(timeout: 5), "Menu screen should be visible")

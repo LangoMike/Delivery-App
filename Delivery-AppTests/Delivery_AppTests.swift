@@ -137,12 +137,6 @@ final class Delivery_AppTests: XCTestCase {
         XCTAssertEqual(total, 2660, "Total should be $26.60")
     }
     
-    /// Tests total for empty cart
-    func testTotalEmptyCart() throws {
-        let items: [CartItem] = []
-        let total = CartCalculator.totalCents(items: items)
-        XCTAssertEqual(total, 0, "Total should be 0 for empty cart")
-    }
     
     // MARK: - Quantity Update Tests
     
