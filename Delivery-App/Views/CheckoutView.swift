@@ -154,11 +154,11 @@ struct CheckoutView: View {
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(viewModel.isValidAddress && !cartStore.isEmpty ? Color.blue : Color.gray)
+                            .background(!cartStore.isEmpty ? Color.blue : Color.gray)
                             .cornerRadius(8)
                     }
                 }
-                .disabled(!viewModel.isValidAddress || cartStore.isEmpty || isPlacingOrder)
+                .disabled(cartStore.isEmpty || isPlacingOrder)
                 .accessibilityIdentifier("placeOrderButton")
             }
             .padding()
@@ -189,6 +189,13 @@ struct CheckoutView: View {
             return
         }
         
+        // Check address validation before proceeding
+        guard viewModel.isValidAddress else {
+            viewModel.error = AppError.apiError("Invalid address, please check and try again")
+            showingError = true
+            return
+        }
+        
         // Get restaurant name from cart store
         let restaurantName = cartStore.restaurantName ?? "Restaurant"
         
@@ -209,7 +216,7 @@ struct CheckoutView: View {
             navigateToStatus = true
         } catch let appError as AppError {
             if appError == .invalidAddress {
-                viewModel.error = AppError.apiError("Order not processed: Invalid Address")
+                viewModel.error = AppError.apiError("Invalid address, please check and try again")
             } else {
                 viewModel.error = appError
             }
