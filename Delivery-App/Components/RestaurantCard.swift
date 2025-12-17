@@ -13,16 +13,13 @@ struct RestaurantCard: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Restaurant image placeholder
-            Rectangle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(height: 150)
-                .overlay(
-                    Image(systemName: "fork.knife")
-                        .font(.system(size: 40))
-                        .foregroundColor(.gray)
-                )
-                .cornerRadius(12)
+            // Restaurant image
+            AsyncImageView(
+                imageURL: restaurant.imageURL,
+                placeholder: Image(systemName: "fork.knife"),
+                height: 150
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             
             // Restaurant name
             Text(restaurant.name)

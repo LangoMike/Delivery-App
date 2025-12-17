@@ -127,11 +127,12 @@ struct OrderStatusView: View {
         }
     }
     
-    /// Refreshes the order status from the service
+    /// Advances the order to the next stage
     private func refreshStatus() async {
         guard let order = order else { return }
         
-        if let (stage, etaMinutes) = await viewModel.refreshOrderStatus(orderId: order.id) {
+        // Advance to next stage instead of fetching random status
+        if let (stage, etaMinutes) = await viewModel.advanceOrderStage(currentStage: order.stage) {
             orderStore.updateOrderStatus(stage: stage, etaMinutes: etaMinutes)
             self.order = orderStore.currentOrder
         }

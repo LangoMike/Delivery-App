@@ -84,14 +84,6 @@ struct MenuView: View {
             }
         }
         .onAppear {
-            // #region agent log
-            DebugLogger.log(
-                location: "MenuView.swift:86",
-                message: "MenuView appeared",
-                data: ["restaurantId": restaurant.id, "restaurantName": restaurant.name],
-                hypothesisId: "A"
-            )
-            // #endregion
             Task {
                 await viewModel.loadMenuItems()
             }

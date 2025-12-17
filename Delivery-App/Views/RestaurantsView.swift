@@ -80,16 +80,6 @@ struct RestaurantsView: View {
         .navigationDestination(for: Restaurant.self) { restaurant in
             MenuView(restaurant: restaurant)
                 .environmentObject(cartStore)
-                .onAppear {
-                    // #region agent log
-                    DebugLogger.log(
-                        location: "RestaurantsView.swift:80",
-                        message: "NavigationDestination triggered - MenuView created",
-                        data: ["restaurantId": restaurant.id, "restaurantName": restaurant.name],
-                        hypothesisId: "A"
-                    )
-                    // #endregion
-                }
         }
         .navigationDestination(for: String.self) { destination in
             if destination == "cart" {

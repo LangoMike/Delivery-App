@@ -33,13 +33,23 @@ struct CheckoutView: View {
                         .font(.headline)
                     
                     ForEach(cartStore.items) { item in
-                        HStack {
-                            Text("\(item.quantity)x \(item.menuItem.name)")
-                            Spacer()
-                            Text(MoneyFormat.format(cents: item.totalCents))
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text("\(item.quantity)x \(item.menuItem.name)")
+                                Spacer()
+                                Text(MoneyFormat.format(cents: item.totalCents))
+                            }
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            
+                            // Display note if present
+                            if !item.note.isEmpty {
+                                Text("     - \(item.note)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                    .padding(.leading, 8)
+                            }
                         }
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
                     }
                     
                     Divider()
@@ -188,7 +198,15 @@ struct CheckoutView: View {
             
             // Navigate to status screen
             navigateToStatus = true
+        } catch let appError as AppError {
+            if appError == .invalidAddress {
+                viewModel.error = AppError.apiError("Order not processed: Invalid Address")
+            } else {
+                viewModel.error = appError
+            }
+            showingError = true
         } catch {
+            viewModel.error = AppError.unknown
             showingError = true
         }
         

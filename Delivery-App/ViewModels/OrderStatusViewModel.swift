@@ -21,7 +21,28 @@ class OrderStatusViewModel: ObservableObject {
         self.orderService = orderService
     }
     
-    /// Refreshes order status from the service
+    /// Advances order to the next stage
+    func advanceOrderStage(currentStage: OrderStage) async -> (OrderStage, Int?)? {
+        isLoading = true
+        error = nil
+        
+        defer {
+            isLoading = false
+        }
+        
+        do {
+            let (stage, etaMinutes) = try await orderService.advanceOrderStage(currentStage: currentStage)
+            return (stage, etaMinutes)
+        } catch let appError as AppError {
+            error = appError
+            return nil
+        } catch {
+            self.error = AppError.unknown
+            return nil
+        }
+    }
+    
+    /// Refreshes order status from the service (kept for compatibility)
     func refreshOrderStatus(orderId: String) async -> (OrderStage, Int?)? {
         isLoading = true
         error = nil

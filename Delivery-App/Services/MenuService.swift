@@ -16,19 +16,70 @@ class MenuService {
     }
     
     /// Fetches menu items for a specific restaurant
-    /// Uses Spoonacular API if configured, otherwise returns mock data
+    /// Uses Spoonacular API if configured, otherwise returns mock data with images
     func fetchMenuItems(for restaurantId: String) async throws -> [MenuItem] {
         let apiKey = APIConfig.getAPIKey(for: .spoonacular)
         
-        if apiKey.isEmpty {
-            // Return mock data for development
-            return mockMenuItems(for: restaurantId)
+        var items = mockMenuItems(for: restaurantId)
+        
+        // If API key is available, fetch images for menu items
+        if !apiKey.isEmpty {
+            items = try await enrichMenuItemsWithImages(items: items, apiKey: apiKey)
         }
         
-        // TODO: Implement Spoonacular API integration
-        // Use Spoonacular's recipe search to get menu items
-        // For now, return mock data
-        return mockMenuItems(for: restaurantId)
+        return items
+    }
+    
+    /// Enriches menu items with images from Spoonacular API
+    private func enrichMenuItemsWithImages(items: [MenuItem], apiKey: String) async throws -> [MenuItem] {
+        var enrichedItems: [MenuItem] = []
+        
+        for item in items {
+            // Search for recipe by name to get image
+            if let imageURL = try? await searchRecipeImage(query: item.name, apiKey: apiKey) {
+                // Create new MenuItem with updated imageURL
+                let enrichedItem = MenuItem(
+                    id: item.id,
+                    restaurantId: item.restaurantId,
+                    name: item.name,
+                    description: item.description,
+                    priceCents: item.priceCents,
+                    imageURL: imageURL
+                )
+                enrichedItems.append(enrichedItem)
+            } else {
+                // Keep original item if image fetch fails
+                enrichedItems.append(item)
+            }
+        }
+        
+        return enrichedItems
+    }
+    
+    /// Searches for a recipe image using Spoonacular API
+    private func searchRecipeImage(query: String, apiKey: String) async throws -> String? {
+        let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        let urlString = "\(APIConfig.spoonacularBaseURL)/recipes/complexSearch?query=\(encodedQuery)&apiKey=\(apiKey)&number=1&addRecipeInformation=false"
+        
+        guard let url = URL(string: urlString) else {
+            return nil
+        }
+        
+        struct RecipeSearchResponse: Codable {
+            let results: [RecipeResult]
+        }
+        
+        struct RecipeResult: Codable {
+            let image: String?
+        }
+        
+        do {
+            let response: RecipeSearchResponse = try await APIClient.shared.get(url: url)
+            return response.results.first?.image
+        } catch {
+            // If API call fails, return nil to use placeholder
+            return nil
+        }
     }
     
     /// Returns mock menu items for a restaurant

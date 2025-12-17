@@ -35,7 +35,36 @@ class OrderService {
         return order
     }
     
-    /// Fetches current order status
+    /// Advances order to the next stage
+    /// Returns the next stage and updated ETA
+    func advanceOrderStage(currentStage: OrderStage) async throws -> (OrderStage, Int?) {
+        // Simulate API delay
+        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        
+        // Determine next stage based on current stage
+        let nextStage: OrderStage
+        let etaMinutes: Int?
+        
+        switch currentStage {
+        case .received:
+            nextStage = .preparing
+            etaMinutes = Int.random(in: 20...35)
+        case .preparing:
+            nextStage = .outForDelivery
+            etaMinutes = Int.random(in: 15...30)
+        case .outForDelivery:
+            nextStage = .delivered
+            etaMinutes = nil
+        case .delivered:
+            // Already delivered, return same stage
+            nextStage = .delivered
+            etaMinutes = nil
+        }
+        
+        return (nextStage, etaMinutes)
+    }
+    
+    /// Fetches current order status (kept for compatibility)
     /// For now simulates status progression - will be replaced with real API integration
     func fetchOrderStatus(orderId: String) async throws -> (OrderStage, Int?) {
         // Simulate API delay

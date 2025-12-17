@@ -14,15 +14,14 @@ struct MenuItemRow: View {
     
     var body: some View {
         HStack(spacing: 12) {
-            // Item image placeholder
-            Rectangle()
-                .fill(Color.gray.opacity(0.2))
-                .frame(width: 80, height: 80)
-                .overlay(
-                    Image(systemName: "photo")
-                        .foregroundColor(.gray)
-                )
-                .cornerRadius(8)
+            // Item image
+            AsyncImageView(
+                imageURL: menuItem.imageURL,
+                placeholder: Image(systemName: "photo"),
+                width: 80,
+                height: 80
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 8))
             
             // Item details
             VStack(alignment: .leading, spacing: 4) {
