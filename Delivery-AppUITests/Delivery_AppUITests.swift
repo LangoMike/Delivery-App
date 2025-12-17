@@ -10,32 +10,92 @@ import XCTest
 final class Delivery_AppUITests: XCTestCase {
 
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
+        // Stop immediately when a failure occurs
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        // Clean up after each test
     }
 
+    /// Tests the complete order flow: select restaurant -> add item -> cart -> checkout -> place order -> verify status
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testCompleteOrderFlow() throws {
         let app = XCUIApplication()
         app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-
-    @MainActor
-    func testLaunchPerformance() throws {
-        // This measures how long it takes to launch your application.
-        measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
-        }
+        
+        // Wait for restaurants to load
+        let restaurantsScreen = app.navigationBars["CampusEats"]
+        XCTAssertTrue(restaurantsScreen.waitForExistence(timeout: 5), "Restaurants screen should be visible")
+        
+        // Step 1: Select a restaurant
+        let restaurantCell = app.buttons["restaurantCell"].firstMatch
+        XCTAssertTrue(restaurantCell.waitForExistence(timeout: 5), "Restaurant cell should exist")
+        restaurantCell.tap()
+        
+        // Wait for menu to load
+        let menuScreen = app.navigationBars.firstMatch
+        XCTAssertTrue(menuScreen.waitForExistence(timeout: 5), "Menu screen should be visible")
+        
+        // Step 2: Add an item to cart
+        let addToCartButton = app.buttons["addToCartButton"].firstMatch
+        XCTAssertTrue(addToCartButton.waitForExistence(timeout: 5), "Add to cart button should exist")
+        addToCartButton.tap()
+        
+        // Step 3: Go to cart
+        let cartButton = app.buttons["cartButton"]
+        XCTAssertTrue(cartButton.waitForExistence(timeout: 2), "Cart button should exist")
+        cartButton.tap()
+        
+        // Verify cart screen
+        let cartScreen = app.navigationBars["Cart"]
+        XCTAssertTrue(cartScreen.waitForExistence(timeout: 5), "Cart screen should be visible")
+        
+        // Step 4: Go to checkout
+        let checkoutButton = app.buttons["checkoutButton"]
+        XCTAssertTrue(checkoutButton.waitForExistence(timeout: 2), "Checkout button should exist")
+        checkoutButton.tap()
+        
+        // Verify checkout screen
+        let checkoutScreen = app.navigationBars["Checkout"]
+        XCTAssertTrue(checkoutScreen.waitForExistence(timeout: 5), "Checkout screen should be visible")
+        
+        // Step 5: Enter address
+        let addressLine1Field = app.textFields["addressLine1Field"]
+        XCTAssertTrue(addressLine1Field.waitForExistence(timeout: 2), "Address line 1 field should exist")
+        addressLine1Field.tap()
+        addressLine1Field.typeText("123 Main Street")
+        
+        let cityField = app.textFields["cityField"]
+        XCTAssertTrue(cityField.waitForExistence(timeout: 2), "City field should exist")
+        cityField.tap()
+        cityField.typeText("Blacksburg")
+        
+        let stateField = app.textFields["stateField"]
+        XCTAssertTrue(stateField.waitForExistence(timeout: 2), "State field should exist")
+        stateField.tap()
+        stateField.typeText("VA")
+        
+        let zipField = app.textFields["zipField"]
+        XCTAssertTrue(zipField.waitForExistence(timeout: 2), "ZIP field should exist")
+        zipField.tap()
+        zipField.typeText("24060")
+        
+        // Step 6: Place order
+        let placeOrderButton = app.buttons["placeOrderButton"]
+        XCTAssertTrue(placeOrderButton.waitForExistence(timeout: 2), "Place order button should exist")
+        XCTAssertTrue(placeOrderButton.isEnabled, "Place order button should be enabled")
+        placeOrderButton.tap()
+        
+        // Wait for order to be placed (may take a moment)
+        let statusScreenTitle = app.navigationBars["Order Status"]
+        XCTAssertTrue(statusScreenTitle.waitForExistence(timeout: 10), "Status screen should appear after placing order")
+        
+        // Step 7: Verify status screen is visible
+        let refreshStatusButton = app.buttons["refreshStatusButton"]
+        XCTAssertTrue(refreshStatusButton.waitForExistence(timeout: 5), "Refresh status button should exist on status screen")
+        
+        // Verify status screen title
+        XCTAssertTrue(statusScreenTitle.exists, "Status screen title should be visible")
     }
 }

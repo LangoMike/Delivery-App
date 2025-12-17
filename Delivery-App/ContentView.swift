@@ -8,17 +8,20 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var cartStore: CartStore
+    @EnvironmentObject var orderStore: OrderStore
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            RestaurantsView(viewModel: RestaurantsViewModel(restaurantService: RestaurantService()))
+                .environmentObject(cartStore)
+                .environmentObject(orderStore)
         }
-        .padding()
     }
 }
 
 #Preview {
     ContentView()
+        .environmentObject(CartStore())
+        .environmentObject(OrderStore())
 }
