@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 /// ViewModel for the Checkout screen - manages address input and order placement
 @MainActor

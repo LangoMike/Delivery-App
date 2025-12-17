@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 /// ViewModel for the Menu screen - manages menu items for a restaurant
 @MainActor
@@ -33,7 +34,7 @@ class MenuViewModel: ObservableObject {
         } catch let appError as AppError {
             error = appError
         } catch {
-            error = .unknown
+            error = AppError.unknown
         }
         
         isLoading = false

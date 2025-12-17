@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 /// ViewModel for the Order Status screen - manages order status updates
 @MainActor
@@ -36,7 +37,7 @@ class OrderStatusViewModel: ObservableObject {
             error = appError
             return nil
         } catch {
-            error = .unknown
+            error = AppError.unknown
             return nil
         }
     }
